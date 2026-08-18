@@ -1,6 +1,6 @@
 {
   "name": "envista",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Cascading .env loader built on Node's own parser. Zero dependencies.",
   "keywords": [
     "dotenv",
