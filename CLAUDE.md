@@ -29,7 +29,7 @@ does. `src` holds the whole implementation and its tests.
   by walking a path another test already walks
 - Parsing behavior lives only in the table at the top of `parse.test.ts`, one
   entry per case. `source` says where the case comes from, and `divergence` says
-  why we disagree with it, which the type requires for every source but `dotenv`
+  why we disagree, which the type requires for every source but `dotenv`
 - `index.test.ts` covers the public API against one temp tree, rebuilt per case
 - A title carries the behavior and a named variable carries the rest, so a test
   body needs no comment
@@ -40,6 +40,8 @@ does. `src` holds the whole implementation and its tests.
 ## Voice
 
 - Write like a lazy engineer who is not trying to be funny: say the thing, stop
+- Cut every word doing no work, then vary what is left. A long sentence earns a
+  short one after it, which is what keeps a tight paragraph readable
 - No semicolons, em dashes, or en dashes. Nobody reaches for them at a
   keyboard, so they read as machine output. A period splits the sentence, a
   comma joins the clause, and a colon introduces the list

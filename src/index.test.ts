@@ -49,7 +49,8 @@ beforeEach(() => {
   writeFileSync(join(repositoryRoot, `.env.${mode}`), "SHARED=from-mode");
 
   process.env = { ...shellEnv, SET_IN_SHELL: "from-shell", EMPTY_IN_SHELL: "" };
-  // Vitest sets NODE_ENV, which would pick a mode for every case that omits one
+  // Vitest sets NODE_ENV, which would hand a mode to every case meant to go
+  // without one
   delete process.env["NODE_ENV"];
 });
 

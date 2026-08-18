@@ -1,7 +1,7 @@
 # Contributing
 
-Thanks for helping out. This is a small package, so the bar is mostly about
-keeping it small.
+Thanks for helping out. This is a small package, so the bar is about keeping it
+small.
 
 ## Getting started
 
@@ -27,13 +27,16 @@ pnpm run format
 
 ## Adding a test
 
-Parsing behavior belongs in the table at the top of `src/parse.test.ts`, as one
-entry. Set `source` to where the case comes from, and when envista disagrees
-with that source, write a `divergence` explaining why. A test asserts the same
-behavior once, so check the table before adding a case.
+Parsing behavior goes in the table at the top of `src/parse.test.ts`, one entry
+per case. Set `source` to whoever you are quoting, and when envista reads the
+case differently, write a `divergence` saying why. Every behavior is asserted
+once, so read the table before adding a row.
 
-File resolution belongs in `src/files.test.ts`, and anything that touches
-`process.env` belongs in `src/load.test.ts`.
+Everything else goes in `src/index.test.ts`: which files a directory resolves
+to, in what order, and what ends up in `process.env`. Each case writes real
+`.env` files into a fresh temp directory and deletes it afterwards. Write yours
+the same way. A committed fixture would have to be named `.env`, and
+`.gitignore` skips that name on purpose.
 
 ## Scope
 
@@ -43,16 +46,17 @@ envista resolves and reads `.env` files. It does not:
 - Validate or coerce values, which schema libraries already do well
 - Bundle its own `.env` parser, since the runtime has one
 
-A pull request adding any of those will get a friendly no. One that fixes a
+A pull request adding any of those gets a friendly no. One that fixes a
 divergence from `util.parseEnv`, or covers a case the table misses, is welcome.
 
 ## Commit messages
 
-The title is the whole message, as in `feat: search parent directories`. Pull
-requests land as squash commits, so the commits on your branch do not matter.
+The title is the whole message, as in `feat: search parent directories`. No
+prose body. Pull requests land as squash commits, so your branch's commits do
+not matter.
 
 ## Releasing
 
 Maintainers only. Bump the version, tag it `vX.Y.Z`, and push the tag. The
-release workflow verifies the tag against `package.json` and publishes through
+release workflow checks the tag against `package.json`, then publishes through
 npm trusted publishing, which attaches a provenance attestation.

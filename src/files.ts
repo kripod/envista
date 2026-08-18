@@ -3,22 +3,20 @@ import { dirname, join, resolve } from "node:path";
 
 /** Where to look for `.env` files. */
 export interface EnvFileOptions {
-  /** Defaults to `process.cwd()`. */
+  /** Where the upward search starts. Defaults to `process.cwd()`. */
   cwd?: string;
   /**
-   * Selects the `.env.<mode>` files. Defaults to `process.env.NODE_ENV`.
-   * Without one, only `.env` and `.env.local` are read.
+   * Picks the `.env.<mode>` files. Defaults to `process.env.NODE_ENV`. Without
+   * a mode, only `.env` and `.env.local` are read.
    */
   mode?: string;
-  /**
-   * Directory where the search stops, inclusive. Defaults to the root of the
-   * file system.
-   */
+  /** Where the search stops, inclusive. Defaults to the file system root. */
   stopAt?: string;
 }
 
 /**
- * Lists the `.env` files that apply, from lowest to highest precedence.
+ * Lists the `.env` files that apply, lowest precedence first, so merging them
+ * in order lands on the right value.
  *
  * @throws If `mode` is `local`, which collides with the `.local` suffix.
  */
@@ -36,6 +34,7 @@ export function resolveEnvFiles(options: EnvFileOptions = {}): string[] {
   }
 
   const fileNames = fileNamesFor(mode);
+  // Nearest directory last, so its files win the merge
   const directories = directoriesUpFrom(resolve(cwd), stopAt).toReversed();
   const files = directories.flatMap((directory) =>
     fileNames.map((name) => join(directory, name)),
@@ -58,6 +57,7 @@ function directoriesUpFrom(cwd: string, stopAt: string | undefined): string[] {
   let directory = cwd;
   while (directory !== boundary) {
     const parent = dirname(directory);
+    // The file system root is its own parent, so the walk ends here
     if (parent === directory) {
       break;
     }
@@ -69,8 +69,8 @@ function directoriesUpFrom(cwd: string, stopAt: string | undefined): string[] {
 }
 
 /**
- * A named pipe reads once and is how secret managers such as 1Password hand a
- * file over, so it counts even though it is not a regular file
+ * A named pipe is not a regular file, but it is how secret managers such as
+ * 1Password hand one over, so it counts
  */
 function isReadableFile(path: string): boolean {
   const stats = statSync(path, { throwIfNoEntry: false });

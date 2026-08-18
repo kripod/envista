@@ -3,9 +3,8 @@ import { parseEnv } from "./parse.ts";
 
 /**
  * One case of parsing behavior. `expected` holds every variable the input
- * declares. Every source but `dotenv` requires a `divergence` note saying why
- * envista reads the case differently, since a surprising result nobody wrote
- * down reads as a bug later.
+ * declares, and every source but `dotenv` owes a `divergence` saying why we
+ * read the case differently. A surprise nobody wrote down reads as a bug later.
  */
 type ConformanceCase = {
   name: string;
@@ -17,13 +16,15 @@ type ConformanceCase = {
 );
 
 /**
- * Every case is written once here, and no two tests walk the same path.
+ * The whole format, written down once. No two cases walk the same path.
  *
- * `dotenv` cases are the de facto format every implementation agrees on.
- * `node` cases are what `util.parseEnv` does where the ecosystem differs.
- * `php-xdg` cases come from the POSIX-shell spec at
- * https://github.com/php-xdg/dotenv-spec, which no mainstream implementation
- * follows. `envista` cases are what envista normalizes on top of Node.
+ * `source` is who is being quoted:
+ *
+ * - `dotenv` is the format every implementation agrees on
+ * - `node` is what `util.parseEnv` does where the ecosystem disagrees
+ * - `php-xdg` is the POSIX-shell spec at
+ *   https://github.com/php-xdg/dotenv-spec, which nobody mainstream follows
+ * - `envista` is the little we normalize on top of Node
  */
 const conformanceCases: ConformanceCase[] = [
   {
@@ -152,7 +153,7 @@ const conformanceCases: ConformanceCase[] = [
     source: "node",
     input: String.raw`A="a\rb"`,
     expected: { A: String.raw`a\rb` },
-    divergence: "dotenv expands this one to a carriage return.",
+    divergence: "dotenv expands this one into a carriage return.",
   },
   {
     name: "an escaped double quote ends the value",
@@ -160,14 +161,14 @@ const conformanceCases: ConformanceCase[] = [
     input: String.raw`A="he\"llo"`,
     expected: { A: "he\\" },
     divergence:
-      "Node drops the rest of the line. Single quote the value to keep it.",
+      "Node drops the rest of the line. Single quote the value to keep the quote.",
   },
   {
     name: "a __proto__ assignment declares nothing",
     source: "node",
     input: "A=hello\n__proto__=polluted",
     expected: { A: "hello" },
-    divergence: "Node drops the key, which keeps a file off Object.prototype.",
+    divergence: "Node drops the key, so a file cannot reach Object.prototype.",
   },
   {
     name: "a hash without leading space still starts a comment",
@@ -182,35 +183,35 @@ const conformanceCases: ConformanceCase[] = [
     source: "php-xdg",
     input: "A=one B=two",
     expected: { A: "one B=two" },
-    divergence: "POSIX reads two assignments here.",
+    divergence: "POSIX reads this as two assignments.",
   },
   {
     name: "an unterminated quote is kept verbatim",
     source: "php-xdg",
     input: 'A="oops',
     expected: { A: '"oops' },
-    divergence: "POSIX raises a parse error.",
+    divergence: "POSIX raises a parse error instead.",
   },
   {
     name: "adjacent quoted runs do not concatenate",
     source: "php-xdg",
     input: `A='foo'bar"baz"`,
     expected: { A: "foo" },
-    divergence: "POSIX joins them into `foobarbaz`.",
+    divergence: "POSIX joins the runs into `foobarbaz`.",
   },
   {
     name: "a trailing backslash does not continue the line",
     source: "php-xdg",
     input: "A=foo\\\nbar",
     expected: { A: "foo\\" },
-    divergence: "POSIX joins the lines into `foobar`.",
+    divergence: "POSIX joins the two lines into `foobar`.",
   },
   {
     name: "a backslash does not escape a space",
     source: "php-xdg",
     input: String.raw`A=b\ c`,
     expected: { A: String.raw`b\ c` },
-    divergence: "POSIX reads `b c`.",
+    divergence: "POSIX reads the escape and gives you `b c`.",
   },
   {
     name: "a byte order mark stays out of the first key",
@@ -218,7 +219,7 @@ const conformanceCases: ConformanceCase[] = [
     input: "\uFEFFA=hello",
     expected: { A: "hello" },
     divergence:
-      "Node keeps the mark, which leaves the variable unreachable under the name in the file.",
+      "Node keeps the mark, which leaves the variable unreachable under the name written in the file.",
   },
 ];
 
