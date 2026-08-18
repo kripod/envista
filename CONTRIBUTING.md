@@ -58,5 +58,18 @@ not matter.
 ## Releasing
 
 Maintainers only. Bump the version, tag it `vX.Y.Z`, and push the tag. The
-release workflow checks the tag against `package.json`, then publishes through
-npm trusted publishing, which attaches a provenance attestation.
+release workflow checks the tag against `package.json`, then stages the build
+through npm trusted publishing, which attaches a provenance attestation.
+
+Staging means the version is not live yet. It waits for a maintainer, so review
+it and let it out:
+
+```sh
+npm stage list envista
+npm stage view <stage-id>
+npm stage approve <stage-id>
+```
+
+Approving asks for 2FA, which is the point: the credential CI holds cannot put
+a version in front of users on its own. `npm stage reject <stage-id>` drops it
+instead.

@@ -4,20 +4,33 @@ on:
   push:
     tags: ["v*"]
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
-  publish:
+  check:
     runs-on: ubuntu-latest
-    # Requires a trusted publisher on npmjs.com pointing at this workflow file.
-    # npm then mints a short lived credential per run, so there is no token to
-    # leak, and it attaches a provenance attestation without being asked
     permissions:
       contents: read
-      id-token: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - run: pnpm run typecheck
+      - run: pnpm run lint
+      - run: pnpm run format:check
+      - run: pnpm run test --run
+
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tarball: ${{ steps.pack.outputs.tarball }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
 
       - name: Check the tag against the version being published
@@ -29,13 +42,39 @@ jobs:
             exit 1
           fi
 
-      - run: pnpm run typecheck
-      - run: pnpm run lint
-      - run: pnpm run format:check
-      - run: pnpm run test --run
-      - run: pnpm run build
+      # pack runs prepack, so the tarball carries a build of the tagged tree
+      - id: pack
+        run: |
+          tarball="$(pnpm pack | tail -n 1)"
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
 
-      # npm rather than pnpm, since pnpm's OIDC support is still landing
-      # (pnpm/pnpm#11513). Trusted publishing needs npm 11.5.1 or later
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tarball
+          path: ${{ steps.pack.outputs.tarball }}
+
+  publish:
+    needs: [check, build]
+    runs-on: ubuntu-latest
+    # The tarball is the only thing that reaches this job, so no code from the
+    # repository runs next to the credential
+    permissions:
+      id-token: write
+    env:
+      TARBALL: ${{ needs.build.outputs.tarball }}
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: tarball
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      # Node ships neither the 11.5.1 that trusted publishing needs nor the
+      # 11.15.0 that staging needs
       - run: npm install --global npm@latest
-      - run: npm publish
+
+      # A trusted publisher on npmjs.com points at this workflow file, so npm
+      # mints a short lived credential per run and there is no token to leak.
+      # Staging parks the version until a maintainer approves it with 2FA
+      - run: npm stage publish --provenance "$TARBALL"
