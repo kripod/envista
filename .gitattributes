@@ -1,0 +1,4 @@
+* text=auto eol=lf
+
+# Generated, so keep it out of diffs and language statistics
+pnpm-lock.yaml linguist-generated=true -diff

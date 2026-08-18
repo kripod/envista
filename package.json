@@ -1,0 +1,53 @@
+{
+  "name": "envista",
+  "version": "0.0.0",
+  "description": "Cascading .env loader built on Node's own parser. Zero dependencies.",
+  "keywords": [
+    "dotenv",
+    "env",
+    "environment-variables"
+  ],
+  "homepage": "https://github.com/kripod/envista#readme",
+  "bugs": "https://github.com/kripod/envista/issues",
+  "license": "MIT",
+  "author": "Kristóf Poduszló",
+  "repository": "github:kripod/envista",
+  "files": [
+    "dist",
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc --project ./tsconfig.build.json",
+    "dev": "tsc --project ./tsconfig.build.json --watch",
+    "prepack": "pnpm run build",
+    "test": "vitest",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --type-aware --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "oxfmt": "0.63.0",
+    "oxlint": "1.78.0",
+    "oxlint-tsgolint": "7.0.2001",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10"
+  },
+  "engines": {
+    "node": "^22.21.0 || >=24.10.0"
+  },
+  "packageManager": "pnpm@11.22.0+sha512.1ff870c4c6133dfd88fb2afc46dd13d47f09c9794b438c6fdb47ca98caf3bc16381ee0be93a091b8e3824cf01f889f46d7d9e20910fb0be1ab0fb5baa80dd621"
+}
